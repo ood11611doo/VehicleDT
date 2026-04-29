@@ -1,8 +1,13 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "VehicleDTPawn.h"
-#include "VehicleDTWheelFront.h"
-#include "VehicleDTWheelRear.h"
+#include "Vehicle/VehicleDTWheelFront.h"
+#include "Vehicle/VehicleDTWheelRear.h"
+#include "Component/SplineFollowerComponent.h"
+#include "Sensor/CameraSensorComponent.h"
+#include "Sensor/LidarSensorComponent.h"
+#include "BEV/BEVVisualizationComponent.h"
+#include "DataLogger/AgentDataLoggerComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
@@ -52,6 +57,16 @@ AVehicleDTPawn::AVehicleDTPawn()
 	// get the Chaos Wheeled movement component
 	ChaosVehicleMovement = CastChecked<UChaosWheeledVehicleMovementComponent>(GetVehicleMovement());
 
+	SplineFollower  = CreateDefaultSubobject<USplineFollowerComponent>(TEXT("SplineFollower"));
+	CameraSensor    = CreateDefaultSubobject<UCameraSensorComponent>(TEXT("CameraSensor"));
+	LidarSensor     = CreateDefaultSubobject<ULidarSensorComponent>(TEXT("LidarSensor"));
+	BEVVisualization = CreateDefaultSubobject<UBEVVisualizationComponent>(TEXT("BEVVisualization"));
+	DataLogger      = CreateDefaultSubobject<UAgentDataLoggerComponent>(TEXT("DataLogger"));
+}
+
+void AVehicleDTPawn::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void AVehicleDTPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -202,6 +217,37 @@ void AVehicleDTPawn::ResetVehicle(const FInputActionValue& Value)
 	GetMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);
 
 	UE_LOG(LogTemplateVehicle, Error, TEXT("Reset Vehicle"));
+}
+
+void AVehicleDTPawn::DoSteering(float Value)
+{
+	ChaosVehicleMovement->SetSteeringInput(Value);
+}
+
+void AVehicleDTPawn::DoThrottle(float Value)
+{
+	ChaosVehicleMovement->SetThrottleInput(Value);
+}
+
+void AVehicleDTPawn::DoBrake(float Value)
+{
+	ChaosVehicleMovement->SetBrakeInput(Value);
+}
+
+void AVehicleDTPawn::DoBrakeStart()
+{
+	BrakeLights(true);
+	ChaosVehicleMovement->SetBrakeInput(1.f);
+}
+
+void AVehicleDTPawn::DoHandbrake(bool bActive)
+{
+	ChaosVehicleMovement->SetHandbrakeInput(bActive);
+	BrakeLights(bActive);
+}
+
+void AVehicleDTPawn::DoToggleSensorView()
+{
 }
 
 #undef LOCTEXT_NAMESPACE

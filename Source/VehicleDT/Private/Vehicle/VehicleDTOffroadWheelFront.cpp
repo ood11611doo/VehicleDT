@@ -1,14 +1,15 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "VehicleDTOffroadWheelRear.h"
+#include "Vehicle/VehicleDTOffroadWheelFront.h"
 
-UVehicleDTOffroadWheelRear::UVehicleDTOffroadWheelRear()
+UVehicleDTOffroadWheelFront::UVehicleDTOffroadWheelFront()
 {
-	WheelRadius = 50.f;
+	WheelRadius = 50.0f;
 	CorneringStiffness = 750.0f;
 	FrictionForceMultiplier = 4.0f;
-	
+	bAffectedByEngine = true;
+
 	SuspensionMaxRaise = 20.0f;
 	SuspensionMaxDrop = 20.0f;
 	WheelLoadRatio = 1.0f;

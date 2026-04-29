@@ -1,9 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "VehicleDTSportsCar.h"
-#include "VehicleDTSportsWheelFront.h"
-#include "VehicleDTSportsWheelRear.h"
+#include "Vehicle/VehicleDTSportsCar.h"
+#include "Vehicle/VehicleDTSportsWheelFront.h"
+#include "Vehicle/VehicleDTSportsWheelRear.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
 
 AVehicleDTSportsCar::AVehicleDTSportsCar()

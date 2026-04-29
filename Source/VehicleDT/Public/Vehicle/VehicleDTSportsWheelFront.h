@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "VehicleDTWheelFront.h"
+#include "Vehicle/VehicleDTWheelFront.h"
 #include "VehicleDTSportsWheelFront.generated.h"
 
 /**
