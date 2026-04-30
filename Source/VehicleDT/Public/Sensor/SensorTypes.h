@@ -50,6 +50,11 @@ struct FLidarSensorConfig
 	int32 GetTotalPoints() const { return NumChannels * PointsPerChannel; }
 };
 
+/**
+ * FLidarPointCloudData
+ * 3D 공간 좌표 (X,Y,Z)의 배열, LiDAR 레이 캐스트 한 발 = 배열 원소 하나 (TArray<FVector>)
+ * BEV는 이 Points를 받아서 2D픽셀로 변환해 찍음. Pt.X,Pt.Y -> 픽셀 좌표, Pt.Z -> 색상
+ */
 USTRUCT(BlueprintType)
 struct FLidarPointCloudData
 {
@@ -83,6 +88,7 @@ struct FBevRenderConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BEV", meta = (ClampMin = "64", ClampMax = "2048"))
 	int32 ImageSize = 512;
 
+	/** 차량 중심에서 BEV가 보여주는 반경, 10000cm == 100m */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BEV", meta = (ClampMin = "100.0"))
 	float ViewRange = 10000.0f;
 
