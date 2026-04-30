@@ -1,9 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "VehicleDTPlayerController.h"
+#include "System/VehicleDTPlayerController.h"
 #include "VehicleDTPawn.h"
-#include "VehicleDTUI.h"
+#include "System/VehicleDTUI.h"
 #include "EnhancedInputSubsystems.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
 

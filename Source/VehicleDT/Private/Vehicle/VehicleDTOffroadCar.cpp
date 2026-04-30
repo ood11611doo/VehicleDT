@@ -1,9 +1,9 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "VehicleDTOffroadCar.h"
-#include "VehicleDTOffroadWheelFront.h"
-#include "VehicleDTOffroadWheelRear.h"
+#include "Vehicle/VehicleDTOffroadCar.h"
+#include "Vehicle/VehicleDTOffroadWheelFront.h"
+#include "Vehicle/VehicleDTOffroadWheelRear.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 

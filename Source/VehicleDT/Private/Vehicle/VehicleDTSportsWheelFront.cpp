@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 
-#include "VehicleDTSportsWheelFront.h"
+#include "Vehicle/VehicleDTSportsWheelFront.h"
 
 UVehicleDTSportsWheelFront::UVehicleDTSportsWheelFront()
 {

@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "VehicleDTWheelFront.h"
+#include "Vehicle/VehicleDTWheelFront.h"
 #include "UObject/ConstructorHelpers.h"
 
 UVehicleDTWheelFront::UVehicleDTWheelFront()

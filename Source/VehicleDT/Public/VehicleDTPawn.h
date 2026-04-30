@@ -10,6 +10,11 @@ class UCameraComponent;
 class USpringArmComponent;
 class UInputAction;
 class UChaosWheeledVehicleMovementComponent;
+class USplineFollowerComponent;
+class UCameraSensorComponent;
+class ULidarSensorComponent;
+class UBEVVisualizationComponent;
+class UAgentDataLoggerComponent;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateVehicle, Log, All);
@@ -44,6 +49,21 @@ class AVehicleDTPawn : public AWheeledVehiclePawn
 
 	/** Cast pointer to the Chaos Vehicle movement component */
 	TObjectPtr<UChaosWheeledVehicleMovementComponent> ChaosVehicleMovement;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USplineFollowerComponent> SplineFollower;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCameraSensorComponent> CameraSensor;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<ULidarSensorComponent> LidarSensor;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBEVVisualizationComponent> BEVVisualization;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAgentDataLoggerComponent> DataLogger;
 
 protected:
 
@@ -89,9 +109,18 @@ public:
 
 	// Begin Actor interface
 
+	virtual void BeginPlay() override;
 	virtual void Tick(float Delta) override;
 
 	// End Actor interface
+
+	/** SplineFollower가 직접 호출하는 제어 인터페이스 */
+	void DoSteering(float Value);
+	void DoThrottle(float Value);
+	void DoBrake(float Value);
+	void DoBrakeStart();
+	void DoHandbrake(bool bActive);
+	void DoToggleSensorView();
 
 protected:
 
