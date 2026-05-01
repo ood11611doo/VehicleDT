@@ -13,15 +13,7 @@ UBEVVisualizationComponent::UBEVVisualizationComponent()
 void UBEVVisualizationComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	//TODO : QHD나 4k에서는 512*512가 작아보이면? 19~23줄 추가. 이거 아님 말고 앵커 수정 ㄱ
-	
-	FVector2D ViewportSize;
-	GEngine->GameViewport->GetViewportSize(ViewportSize);
-	
-	const int32 Desired = FMath::RoundToInt(FMath::Min(ViewportSize.X, ViewportSize.Y)* 0.25f);
-	Config.ImageSize = FMath::RoundUpToPowerOfTwo(Desired);
-	
+		
 	CreateTexture();
 	BuildColorLUT();
 	
