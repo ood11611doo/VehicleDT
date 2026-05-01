@@ -8,6 +8,7 @@
 
 class UImage;
 class UBorder;
+class UTexture2D;
 class UTextureRenderTarget2D;
 
 UCLASS()
@@ -40,7 +41,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 private:
-	/** 카메라 뷰 컨테이너 — Collapsed/SelfHitTestInvisible 전환으로 켜고 끔 */
+	/** 카메라 뷰 컨테이너 — Collapsed/Visible 전환으로 켜고 끔 */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> SensorBorder;
 
@@ -48,7 +49,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UImage> SensorImage;
 
-	/** BEV 뷰 컨테이너 — Collapsed/SelfHitTestInvisible 전환으로 켜고 끔 */
+	/** BEV 뷰 컨테이너 — Collapsed/Visible 전환으로 켜고 끔 */
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder> LidarBorder;
 
