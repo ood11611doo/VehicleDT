@@ -25,7 +25,10 @@ void UBEVVisualizationComponent::BeginPlay()
 	CreateTexture();
 	BuildColorLUT();
 	
-	//TODO: OnLiDARScenReady 연결
+	if (auto* Lidar = GetOwner()->FindComponentByClass<ULidarSensorComponent>())
+	{
+		Lidar->OnLidarScanReady.AddUObject(this, &UBEVVisualizationComponent::HandleLidarScan);
+	}
 }
 
 void UBEVVisualizationComponent::HandleLidarScan(const FLidarPointCloudData& PointCloud)
