@@ -1,10 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
-#include "Sensor/SensorTypes.h"
+#include "Sensor/Camera/SensorCameraTypes.h"
 #include "CameraSensorComponent.generated.h"
 
 class USceneCaptureComponent2D;
@@ -20,9 +18,20 @@ class VEHICLEDT_API UCameraSensorComponent : public USceneComponent
 public:
 	UCameraSensorComponent();
 
+	UFUNCTION(BlueprintPure, Category = "CameraSensor")
 	UTextureRenderTarget2D* GetRenderTarget() const { return RenderTarget; }
 
-	FOnCameraFrameReady OnFrameReady;
+	UFUNCTION(BlueprintCallable, Category = "CameraSensor")
+	void TriggerCapture();
+
+	UFUNCTION(BlueprintCallable, Category = "CameraSensor")
+	void SetPreset(ECameraPreset NewPreset);
+
+	UFUNCTION(BlueprintCallable, Category = "CameraSensor")
+	void SetFrameRate(float Hz);
+
+	UFUNCTION(BlueprintCallable, Category = "CameraSensor")
+	void ApplySensorConfig();
 
 protected:
 	virtual void OnRegister() override;
@@ -34,68 +43,56 @@ protected:
 #endif
 
 private:
-	UFUNCTION(BlueprintCallable, Category = "CameraSensor")
-	void ApplyPreset(ECameraSensorPreset NewPreset);
-
-	UFUNCTION(BlueprintCallable, Category = "CameraSensor")
-	void SetCaptureRate(float Hz);
-
-	UFUNCTION(BlueprintCallable, Category = "CameraSensor")
-	void CaptureOnce();
-
-	UFUNCTION(BlueprintCallable, Category = "CameraSensor")
-	void RefreshSettings();
-
-	void InitializeCapture();
-	void CreateRenderTarget();
-	void ConfigureSceneCapture();
-	void ApplyPostProcessSettings();
-	void ApplyLensDistortion();
-	void StartCaptureTimer();
-	void StopCaptureTimer();
-	void OnCaptureTimer();
-	void SaveCameraImage();
+	void InitCapture();
+	void BuildRenderTarget();
+	void ConfigureCapture();
+	void ApplyPostProcess();
+	void ApplyDistortion();
+	void StartTimer();
+	void StopTimer();
+	void OnTimer();
+	void ExportFrame();
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|Config",
 		meta=(AllowPrivateAccess="true"))
-	ECameraSensorPreset Preset = ECameraSensorPreset::TeslaHW3_Wide;
+	ECameraPreset Preset = ECameraPreset::TeslaHW3_Wide;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|Config",
 		meta=(AllowPrivateAccess="true"))
-	bool bSensorEnabled = true;
+	bool bEnabled = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|Intrinsics",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|Spec",
 		meta=(AllowPrivateAccess="true"))
-	FCameraSensorIntrinsics Intrinsics;
+	FCameraSpec Spec;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|Distortion",
 		meta=(AllowPrivateAccess="true"))
-	FLensDistortionParams Distortion;
+	FLensDistortion Distortion;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|Noise",
 		meta=(AllowPrivateAccess="true"))
-	FSensorNoiseParams Noise;
+	FCameraNoiseParams Noise;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|PostProcess",
 		meta=(AllowPrivateAccess="true"))
-	FCameraPostProcessEffects PostProcess;
+	FCameraPostProcess PostProcess;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|Exposure",
 		meta=(AllowPrivateAccess="true"))
-	FAutoExposureParams Exposure;
+	FAutoExposure Exposure;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|DataSave",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|Export",
 		meta=(AllowPrivateAccess="true"))
-	bool bIsDataSaving = false;
+	bool bExportEnabled = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|DataSave",
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|Export",
 		meta=(AllowPrivateAccess="true"))
-	FSensorDataSaveConfig DataSaveConfig;
+	FDataExportConfig ExportConfig;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CameraSensor|Distortion",
 		meta=(AllowPrivateAccess="true"))
-	TObjectPtr<UMaterialInterface> LensDistortionMaterial;
+	TObjectPtr<UMaterialInterface> DistortionMaterial;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CameraSensor|Output",
 		meta=(AllowPrivateAccess="true"))
@@ -103,7 +100,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CameraSensor|Output",
 		meta=(AllowPrivateAccess="true"))
-	int64 FrameCount = 0;
+	int64 CaptureCount = 0;
 
 	UPROPERTY()
 	TObjectPtr<USceneCaptureComponent2D> SceneCapture;
@@ -111,5 +108,5 @@ private:
 	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> DistortionMID;
 
-	FTimerHandle CaptureTimerHandle;
+	FTimerHandle TimerHandle;
 };
