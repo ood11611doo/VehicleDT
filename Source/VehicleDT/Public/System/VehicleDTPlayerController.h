@@ -9,6 +9,7 @@
 class UInputMappingContext;
 class AVehicleDTPawn;
 class UVehicleDTUI;
+class USensorViewWidget;
 
 /**
  *  Vehicle Player Controller class
@@ -45,7 +46,11 @@ protected:
 	/** Pointer to the UI widget */
 	TObjectPtr<UVehicleDTUI> VehicleUI;
 
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<USensorViewWidget> SensorViewClass;
 	
+	UPROPERTY()
+	TObjectPtr<USensorViewWidget> SensorView;
 
 	// Begin Actor interface
 protected:

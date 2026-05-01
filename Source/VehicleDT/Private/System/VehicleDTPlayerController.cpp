@@ -6,6 +6,8 @@
 #include "System/VehicleDTUI.h"
 #include "EnhancedInputSubsystems.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
+#include "Sensor/SensorViewWidget.h"
+#include "BEV/BEVVisualizationComponent.h"
 
 void AVehicleDTPlayerController::BeginPlay()
 {
@@ -17,6 +19,31 @@ void AVehicleDTPlayerController::BeginPlay()
 	check(VehicleUI);
 
 	VehicleUI->AddToViewport();
+	
+	if (SensorViewClass)
+	{
+		SensorView = CreateWidget<USensorViewWidget>(this, SensorViewClass);
+		if (SensorView)
+		{
+			SensorView->AddToViewport();
+			SensorView->ToggleLidarView();   // BEV 켜기
+			SensorView->ToggleCameraView();  // 카메라 켜기
+
+			// BEV 텍스처 연결
+			GetWorldTimerManager().SetTimerForNextTick([this]()
+			{
+				if (auto* P = Cast<AVehicleDTPawn>(GetPawn()))
+				{
+					if (auto* BEV = P->FindComponentByClass<UBEVVisualizationComponent>())
+					{
+						BEV->OnBEVUpdate.AddUObject(SensorView.Get(),
+							&USensorViewWidget::SetLidarRenderTarget);
+						SensorView->SetLidarRenderTarget(BEV->GetRenderTarget());
+					}
+				}
+			});
+		}
+	}
 }
 
 void AVehicleDTPlayerController::SetupInputComponent()
