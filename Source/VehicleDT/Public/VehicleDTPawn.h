@@ -114,6 +114,9 @@ public:
 
 	// End Actor interface
 
+	UFUNCTION(BlueprintCallable)
+	UTexture2D* GetBEVTexture() const;
+	
 	/** SplineFollower가 직접 호출하는 제어 인터페이스 */
 	void DoSteering(float Value);
 	void DoThrottle(float Value);

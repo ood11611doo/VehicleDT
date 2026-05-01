@@ -122,6 +122,11 @@ void AVehicleDTPawn::Tick(float Delta)
 	BackSpringArm->SetRelativeRotation(FRotator(0.0f, CameraYaw, 0.0f));
 }
 
+UTexture2D* AVehicleDTPawn::GetBEVTexture() const
+{
+	return BEVVisualization ? BEVVisualization->GetRenderTarget() : nullptr;
+}
+
 void AVehicleDTPawn::Steering(const FInputActionValue& Value)
 {
 	// get the input magnitude for steering
@@ -249,5 +254,6 @@ void AVehicleDTPawn::DoHandbrake(bool bActive)
 void AVehicleDTPawn::DoToggleSensorView()
 {
 }
+
 
 #undef LOCTEXT_NAMESPACE
