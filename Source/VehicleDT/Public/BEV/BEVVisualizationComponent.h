@@ -22,6 +22,7 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "BEV")
 	UTexture2D* GetRenderTarget() const { return DynamicTexture; }
+	
 	FOnBEVUpdate OnBEVUpdate;
 
 protected:
@@ -33,6 +34,8 @@ private:
 	void UpdatePixelBuffer(const FLidarPointCloudData& PointCloud);
 	void DrawGrid();
 	void DrawHeading();
+
+	/** Z값cm → ColorLUT 조회 → FColor 반환 */
 	FColor MakeColorFromHeight(float Height) const;
 
 private:
@@ -40,6 +43,7 @@ private:
 		meta=(AllowPrivateAccess="true"))
 	FBevRenderConfig Config;
 
+	/** 주의: GridSpacingMeter는 메소드 내부에서 *100.f로 계산되어 미터(m) 단위임 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BEV",
 		meta=(AllowPrivateAccess="true"))
 	float GridSpacingMeters = 10.f;
@@ -52,9 +56,20 @@ private:
 		meta=(AllowPrivateAccess="true"))
 	bool bShowHeading = true;
 
+	/** 높이 컬러맵 최솟값 cm */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BEV",
+		meta=(AllowPrivateAccess="true"))
+	float HeightMinCm = -200.f;
+
+	/** 높이 컬러맵 최댓값 cm */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BEV",
+		meta=(AllowPrivateAccess="true"))
+	float HeightMaxCm = 300.f;
+
 	UPROPERTY()
 	TObjectPtr<UTexture2D> DynamicTexture;
 
 	TArray<FColor> PixelBuffer;
 	FColor ColorLUT[256];
+	FUpdateTextureRegion2D UpdateRegion;
 };
