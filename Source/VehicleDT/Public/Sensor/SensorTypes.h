@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "SensorTypes.generated.h"
 
+class UTexture2D;
+
 UENUM(BlueprintType)
 enum class ELidarSensorPreset : uint8
 {
