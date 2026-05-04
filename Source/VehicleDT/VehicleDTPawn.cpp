@@ -83,13 +83,14 @@ void AVehicleDTPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		// toggle camera 
 		EnhancedInputComponent->BindAction(ToggleCameraAction, ETriggerEvent::Triggered, this, &AVehicleDTPawn::ToggleCamera);
 
-		// reset the vehicle 
+		// reset the vehicle
 		EnhancedInputComponent->BindAction(ResetVehicleAction, ETriggerEvent::Triggered, this, &AVehicleDTPawn::ResetVehicle);
 	}
 	else
 	{
 		UE_LOG(LogTemplateVehicle, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
+
 }
 
 void AVehicleDTPawn::Tick(float Delta)
@@ -202,6 +203,27 @@ void AVehicleDTPawn::ResetVehicle(const FInputActionValue& Value)
 	GetMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);
 
 	UE_LOG(LogTemplateVehicle, Error, TEXT("Reset Vehicle"));
+}
+
+void AVehicleDTPawn::DoSteering(float Val)
+{
+	ChaosVehicleMovement->SetSteeringInput(Val);
+}
+
+void AVehicleDTPawn::DoThrottle(float Val)
+{
+	ChaosVehicleMovement->SetThrottleInput(Val);
+}
+
+void AVehicleDTPawn::DoBrake(float Val)
+{
+	ChaosVehicleMovement->SetBrakeInput(Val);
+}
+
+void AVehicleDTPawn::DoBrakeStart()
+{
+	ChaosVehicleMovement->SetBrakeInput(1.f);
+	BrakeLights(true);
 }
 
 #undef LOCTEXT_NAMESPACE

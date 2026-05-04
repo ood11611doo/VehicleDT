@@ -1,0 +1,149 @@
+========================================
+  VehicleDT 자동주행 랩타임 튜닝 기록
+========================================
+
+■ 파라미터 설명
+----------------------------------------
+[조향]
+  LookAheadBase       : 얼마나 앞을 보고 핸들을 꺾을지 (기본 거리, cm)
+                        클수록 완만하게 / 작을수록 민감하게 반응
+  LookAheadSpeedFactor: 속도가 빠를수록 더 멀리 봄 (속도 × 이 값 추가)
+  MaxYawDelta         : 최대 허용 조향각 (도)
+  HeadingWeight       : 경로 방향 vs 목표 지점 비율
+                        높을수록 경로 방향 우선 / 낮을수록 위치 복귀 우선
+  CrosstrackGain      : 경로에서 벗어났을 때 복귀 강도
+
+[속도]
+  MaxSpeed            : 최고 속도 (cm/s) — 3000=108km/h, 4000=144km/h
+  MinSpeed            : 최저 속도 (cm/s) — 코너에서도 이 속도 이하로 안 줄임
+  ThrottleGain        : 목표 속도와 현재 속도 차이를 엑셀/브레이크로 변환하는 민감도
+  AccelRate           : 목표 속도 올라갈 때 반응 속도
+  DecelRate           : 목표 속도 내려갈 때 반응 속도 (브레이킹 부드러움)
+
+[코너]
+  LateralFriction     : 코너 허용 속도 계수 — 높을수록 코너를 빠르게 통과 시도
+                        범위: 0.1 ~ 2.0
+  BrakePreviewDist    : 코너 감속을 얼마나 미리 준비할지 (cm)
+                        클수록 더 일찍 브레이크 / 작을수록 늦게 브레이크
+  CurvatureSampleSpan : 곡률 계산 샘플 간격 — 건드릴 필요 거의 없음
+
+
+■ 실험 기록
+----------------------------------------
+실험 0 │ 기본값 (변경 없음)
+       │ LateralFriction=0.8 / MaxSpeed=3000
+       │ 랩타임: 55.30초  ← 베이스라인
+
+실험 1 │ LateralFriction: 0.8 → 1.6
+       │ 코너 허용 속도를 2배로 올림
+       │ 랩타임: 44.19초  (-11.11초)
+
+실험 2 │ LateralFriction: 1.6 → 2.0 (최대값)
+       │ 랩타임: 44.13초  (-0.06초, 거의 효과 없음)
+       │ → LateralFriction은 1.6에서 이미 한계
+
+실험 3 │ LateralFriction: 1.6 / MaxSpeed: 3000 → 4000
+       │ 직선 최고속도를 108km/h → 144km/h로 올림
+       │ 랩타임: 42.09초  (-2.10초)
+
+실험 4 │ AccelRate: 1.0 → 2.0
+       │ 코너 탈출 후 가속 반응 속도 2배
+       │ 랩타임: 41.88초  (-0.21초)
+
+실험 5 │ DecelRate: 0.5 → 1.0
+       │ 코너 전 감속 반응 빠르게 + 주행 안정성 향상
+       │ 랩타임: 41.59초  (-0.29초)
+
+실험 6 │ ThrottleGain: 0.002 → 0.004
+       │ 목표 속도 추종 민감도 2배
+       │ 랩타임: 40.97초  (-0.62초)
+
+실험 7 │ ThrottleGain: 0.004 → 0.006
+       │ 랩타임: 40.71초  (-0.26초)
+
+실험 8 │ ThrottleGain: 0.006 → 0.008
+       │ 랩타임: 40.54초  (-0.17초)
+
+실험 9 │ MaxYawDelta: 40 → 30
+       │ 조향 민감도 높임
+       │ 랩타임: 39.14초  (-1.40초)
+
+실험 10│ MaxYawDelta: 30 → 20
+       │ 랩타임: 37.67초  (-1.47초)
+
+실험 11│ MaxYawDelta: 20 → 15
+       │ 랩타임: 36.81초  (-0.86초)
+
+실험 12│ MaxYawDelta: 15 → 13
+       │ 랩타임: 36.57초  (-0.24초, 아슬아슬하게 유효)
+
+[이탈/무효 실험 - 기록용]
+  MaxSpeed 4500        → 이탈
+  MaxSpeed 5000        → 이탈
+  AccelRate 3.0        → 이탈
+  DecelRate 1.5        → 42.72초 (느려짐)
+  ThrottleGain 0.01    → 40.65초 (느려짐)
+  BrakePreviewDist 3000→ 이탈
+  BrakePreviewDist 7000→ 이탈
+  MinSpeed 800         → 40.71초 (느려짐)
+  LookAheadBase 1000   → 41.89초 (느려짐)
+  HeadingWeight 0.5    → 41.42초 (느려짐)
+  CrosstrackGain 0.003 → 이탈
+  MaxYawDelta 10       → 36.14초 (선 밟음, 무효)
+  MaxYawDelta 12       → 36.31초 (선 밟음, 무효)
+
+
+실험 13│ LookAheadBase: 1500→1800, MaxSpeed: 4000→5000, MaxYawDelta: 13→16
+       │ 조합 변경
+       │ 랩타임: 36.03초  (-0.43초)
+
+실험 14│ MinSpeed: 400 → 800
+       │ 코너에서 최저 속도 올림
+       │ 랩타임: 35.81초  (-0.22초)
+
+실험 15│ LateralFriction: 1.6 → 1.8
+       │ 코너 허용 속도 계수 소폭 증가
+       │ 랩타임: 35.80초  (-0.01초)
+
+실험 16│ CrosstrackGain: 0.0015 → 0.0013
+       │ 경로 이탈 복귀 강도 약하게
+       │ 랩타임: 35.61초  (-0.19초)
+
+[무효 실험]
+  MinSpeed 800 → 200 → 35.55초 (2랩째 이탈, 무효)
+  MinSpeed 200 → 0   → 35.72초 (느려짐)
+  MinSpeed 800으로 복구
+
+실험 17│ AccelRate: 2.0 → 1.5
+       │ 랩타임: 35.59초  (-0.02초)
+
+실험 18│ AccelRate: 1.5 → 1.8
+       │ 랩타임: 35.50초  (-0.09초)
+
+실험 19│ AccelRate: 1.8 → 1.6
+       │ 랩타임: 35.46초  (-0.04초)  ★ 최고 기록
+
+[추가 이탈/무효 실험]
+  MaxYawDelta 15  (LookAheadBase=1800, MaxSpeed=5000) → 36.02초 (선 밟음, 무효)
+  MaxYawDelta 17  → 36.25초 (느려짐)
+  MinSpeed 1200   → 35.91초 (느려짐)
+  AccelRate 4.0   → 36.03초 (느려짐)
+  LookAheadBase 1000 → 37.66초 (느려짐)
+  LookAheadBase 1600~2000 → 선 밟음 무효
+
+
+■ 최종 최적 설정
+----------------------------------------
+  LateralFriction = 1.8
+  MaxSpeed        = 5000
+  MinSpeed        = 800
+  AccelRate       = 1.6
+  DecelRate       = 1.0
+  ThrottleGain    = 0.008
+  MaxYawDelta     = 16
+  LookAheadBase   = 1800
+  HeadingWeight   = 0.7  (기본값)
+  CrosstrackGain  = 0.0013
+  BrakePreviewDist= 5000  (기본값)
+
+  최고 랩타임: 35.46초  (베이스라인 55.30초 대비 -19.84초)

@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\.\\(bat|ps1|sh|exe\\)$\")",
+      "Bash(sort -k2)",
+      "Bash(git checkout *)"
+    ]
+  }
+}
