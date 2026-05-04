@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -34,27 +34,27 @@ private:
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Speed",
 		meta=(AllowPrivateAccess="true"))
-	float MaxSpeed = 3000.f;
+	float MaxSpeed = 5000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Speed",
 		meta=(AllowPrivateAccess="true"))
-	float MinSpeed = 400.f;
+	float MinSpeed = 800.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Speed",
 		meta=(AllowPrivateAccess="true"))
-	float ThrottleGain = 0.002f;
+	float ThrottleGain = 0.008f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Speed",
 		meta=(AllowPrivateAccess="true"))
-	float DecelRate = 0.5f;
+	float DecelRate = 1.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Speed",
 		meta=(AllowPrivateAccess="true"))
-	float AccelRate = 1.f;
+	float AccelRate = 1.6f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Steering",
 		meta=(AllowPrivateAccess="true"))
-	float LookAheadBase = 1500.f;
+	float LookAheadBase = 1800.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Steering",
 		meta=(AllowPrivateAccess="true"))
@@ -62,7 +62,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Steering",
 		meta=(AllowPrivateAccess="true"))
-	float MaxYawDelta = 40.f;
+	float MaxYawDelta = 16.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Steering",
 		meta=(ClampMin="0", ClampMax="1", AllowPrivateAccess="true"))
@@ -70,11 +70,11 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Steering",
 		meta=(AllowPrivateAccess="true"))
-	float CrosstrackGain = 0.0015f;
+	float CrosstrackGain = 0.0013f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Curvature",
 		meta=(ClampMin="0.1", ClampMax="2.0", AllowPrivateAccess="true"))
-	float LateralFriction = 0.8f;
+	float LateralFriction = 1.8f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Curvature",
 		meta=(AllowPrivateAccess="true"))
@@ -98,6 +98,10 @@ private:
 private:
 	TArray<FVector> PathPoints;
 	int32 CurrentPointIndex = 0;
+	int32 PrevPointIndex = 0;
 	bool  bClosedLoop = false;
 	float SmoothedTargetSpeed = 0.f;
+
+	float LapStartTime = 0.f;
+	bool  bLapStarted = false;
 };

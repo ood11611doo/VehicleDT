@@ -1,7 +1,6 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Component/SplineFollowerComponent.h"
-#include "VehicleDT.h"
 #include "VehicleDTPawn.h"
 #include "EngineUtils.h"
 #include "LandscapeSplineActor.h"
@@ -37,7 +36,7 @@ void USplineFollowerComponent::BuildPath()
 	}
 	if (!SplinesComp)
 	{
-		UE_LOG(LogTemplateVehicle, Warning, TEXT("SplineFollower: No ALandscapeSplineActor found"));
+		UE_LOG(LogSplineFollower, Warning, TEXT("SplineFollower: No ALandscapeSplineActor found"));
 		return;
 	}
 
@@ -58,7 +57,7 @@ void USplineFollowerComponent::BuildPath()
 	}
 	if (!NearestCP)
 	{
-		UE_LOG(LogTemplateVehicle, Warning, TEXT("SplineFollower: No control point within SearchRadius"));
+		UE_LOG(LogSplineFollower, Warning, TEXT("SplineFollower: No control point within SearchRadius"));
 		return;
 	}
 
@@ -123,7 +122,7 @@ void USplineFollowerComponent::BuildPath()
 
 	if (PathPoints.Num() < 3)
 	{
-		UE_LOG(LogTemplateVehicle, Warning, TEXT("SplineFollower: Too few path points (%d)"), PathPoints.Num());
+		UE_LOG(LogSplineFollower, Warning, TEXT("SplineFollower: Too few path points (%d)"), PathPoints.Num());
 		return;
 	}
 
@@ -139,9 +138,11 @@ void USplineFollowerComponent::BuildPath()
 	}
 
 	SmoothedTargetSpeed = MaxSpeed;
+	PrevPointIndex = CurrentPointIndex;
+	bLapStarted = false;
 	SetComponentTickEnabled(true);
 
-	UE_LOG(LogTemplateVehicle, Log, TEXT("SplineFollower: %d pts, loop=%s, start=%d"),
+	UE_LOG(LogSplineFollower, Log, TEXT("SplineFollower: %d pts, loop=%s, start=%d"),
 		PathPoints.Num(), bClosedLoop ? TEXT("Y") : TEXT("N"), CurrentPointIndex);
 }
 
@@ -181,7 +182,10 @@ void USplineFollowerComponent::ResampleCatmullRom()
 		);
 
 		for (int32 s = 0; s < Steps; ++s)
-			Out.Add(EvalCatmullRom(P0, P1, P2, P3, (float)s / (float)Steps));
+		{
+			FVector Point = EvalCatmullRom(P0, P1, P2, P3, (float)s / (float)Steps);
+			Out.Add(Point);
+		}
 	}
 	Out.Add(PathPoints.Last());
 
@@ -194,7 +198,7 @@ void USplineFollowerComponent::ResampleCatmullRom()
 			Out.Add(EvalCatmullRom(P0, P1, P2, P3, (float)s / (float)Steps));
 	}
 
-	UE_LOG(LogTemplateVehicle, Log, TEXT("SplineFollower: Resampled %d -> %d pts"), N, Out.Num());
+	UE_LOG(LogSplineFollower, Log, TEXT("SplineFollower: Resampled %d -> %d pts"), N, Out.Num());
 	PathPoints = MoveTemp(Out);
 }
 
@@ -209,6 +213,7 @@ FVector USplineFollowerComponent::GetPointAhead(FVector& OutDir, float Distance)
 	const int32 Num = PathPoints.Num();
 	const FVector Loc = OwnerPawn->GetActorLocation();
 
+	// Project vehicle onto current segment
 	const int32 Nxt = bClosedLoop ? (CurrentPointIndex + 1) % Num
 	                              : FMath::Min(CurrentPointIndex + 1, Num - 1);
 	const FVector A = PathPoints[CurrentPointIndex], B = PathPoints[Nxt];
@@ -218,12 +223,14 @@ FVector USplineFollowerComponent::GetPointAhead(FVector& OutDir, float Distance)
 		? FMath::Clamp(FVector::DotProduct(Loc - A, AB) / (Len * Len), 0.f, 1.f) : 0.f;
 	const float Remain = (1.f - T) * Len;
 
+	// Look-ahead within current segment
 	if (Distance <= Remain && Len > KINDA_SMALL_NUMBER)
 	{
 		OutDir = AB.GetSafeNormal();
 		return FMath::Lerp(A, B, FMath::Min(T + Distance / Len, 1.f));
 	}
 
+	// Walk forward
 	float Left = Distance - Remain;
 	int32 Idx = Nxt;
 	while (Left > 0.f)
@@ -292,6 +299,7 @@ void USplineFollowerComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		return;
 	}
 
+	// Advance CurrentPointIndex
 	const FVector Location = OwnerPawn->GetActorLocation();
 	const float Velocity = OwnerPawn->GetVelocity().Size();
 	const int32 Max = bClosedLoop ? PathPoints.Num() : PathPoints.Num() - 2;
@@ -316,23 +324,44 @@ void USplineFollowerComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		return;
 	}
 
+	// Lap timer (closed loop only)
+	if (bClosedLoop)
+	{
+		const int32 Half = PathPoints.Num() / 2;
+		if (!bLapStarted)
+		{
+			bLapStarted = true;
+			LapStartTime = GetWorld()->GetTimeSeconds();
+		}
+		else if (PrevPointIndex > Half && CurrentPointIndex <= Half / 2)
+		{
+			const float LapTime = GetWorld()->GetTimeSeconds() - LapStartTime;
+			UE_LOG(LogSplineFollower, Log, TEXT("=== LAP TIME: %.2f sec ==="), LapTime);
+			LapStartTime = GetWorld()->GetTimeSeconds();
+		}
+	}
+	PrevPointIndex = CurrentPointIndex;
+
 	const float Yaw = OwnerPawn->GetActorRotation().Yaw;
 
+	// ---- Curvature ----
 	const float CurvHere  = EstimateCurvature(0.f);
 	const float CurvAhead = EstimateCurvature(BrakePreviewDist);
 
-	const float CurvScale = FMath::Lerp(1.f, 0.5f, FMath::Clamp(CurvHere * 3.f, 0.f, 1.f));
+	// ---- Steering ----
+	const float CurvScale = FMath::Lerp(
+		1.f, 0.5f,
+		FMath::Clamp(CurvHere * 3.f, 0.f, 1.f)
+	);
 	const float LADist = (LookAheadBase + Velocity * LookAheadSpeedFactor) * CurvScale;
 
 	FVector PathDir;
 	const FVector LAPos = GetPointAhead(PathDir, LADist);
 
+	const FVector ToTarget = (LAPos - Location).GetSafeNormal();
 	const float PosDelta = FMath::FindDeltaAngleDegrees(
 		Yaw,
-		FMath::Atan2(
-			(LAPos - Location).GetSafeNormal().Y,
-			(LAPos - Location).GetSafeNormal().X
-		) * (180.f / PI)
+		FMath::Atan2(ToTarget.Y, ToTarget.X) * (180.f / PI)
 	);
 
 	const float HdgDelta = FMath::FindDeltaAngleDegrees(
@@ -340,7 +369,7 @@ void USplineFollowerComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	const int32 Nxt = bClosedLoop ?
 		(CurrentPointIndex + 1) % PathPoints.Num()
-	     : FMath::Min(CurrentPointIndex + 1, PathPoints.Num() - 1);
+		: FMath::Min(CurrentPointIndex + 1, PathPoints.Num() - 1);
 	const FVector SegDir = (PathPoints[Nxt] - PathPoints[CurrentPointIndex]).GetSafeNormal();
 	const FVector Offset = Location - PathPoints[CurrentPointIndex];
 	const float CrossErr = FVector::DotProduct(
@@ -348,20 +377,32 @@ void USplineFollowerComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		FVector::CrossProduct(FVector::UpVector, SegDir)
 	);
 
-	const float HdgW = FMath::Lerp(HeadingWeight, 0.3f, FMath::Clamp(CurvHere * 3.f, 0.f, 1.f));
+	const float HdgW = FMath::Lerp(
+		HeadingWeight, 0.3f,
+		FMath::Clamp(CurvHere * 3.f, 0.f, 1.f)
+	);
 	const float YawCmd = PosDelta * (1.f - HdgW) + HdgDelta * HdgW;
-	const float Steer = FMath::Clamp(YawCmd / MaxYawDelta - CrossErr * CrosstrackGain, -1.f, 1.f);
+	const float Steer = FMath::Clamp(
+		YawCmd / MaxYawDelta - CrossErr * CrosstrackGain,
+		-1.f, 1.f
+	);
 	OwnerPawn->DoSteering(Steer);
 
+	// ---- Speed ----
 	const float SpeedLimit = FMath::Min(
 		ComputeCurveSpeedLimit(CurvHere),
 		ComputeCurveSpeedLimit(CurvAhead)
 	);
 
 	const float Rate = (SpeedLimit < SmoothedTargetSpeed) ? DecelRate : AccelRate;
-	SmoothedTargetSpeed = FMath::FInterpTo(SmoothedTargetSpeed, SpeedLimit, DeltaTime, Rate);
+	SmoothedTargetSpeed = FMath::FInterpTo(
+		SmoothedTargetSpeed, SpeedLimit, DeltaTime, Rate
+	);
 
-	const float Cmd = FMath::Clamp((SmoothedTargetSpeed - Velocity) * ThrottleGain, -1.f, 1.f);
+	const float Cmd = FMath::Clamp(
+		(SmoothedTargetSpeed - Velocity) * ThrottleGain,
+		-1.f, 1.f
+	);
 	if (Cmd > 0.05f)
 		OwnerPawn->DoThrottle(Cmd);
 	else if (Cmd < -0.05f)
