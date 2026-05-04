@@ -117,6 +117,20 @@ void UCameraSensorComponent::ApplyPostProcess()
 	PP.bOverride_LensFlareIntensity   = true;
 	PP.LensFlareIntensity             = PostProcess.LensFlareIntensity;
 
+	// Camera noise: map GaussianStdDev to film grain intensity, ShotNoiseIntensity to highlight grain
+	PP.bOverride_FilmGrainIntensity           = true;
+	PP.bOverride_FilmGrainIntensityHighlights = true;
+	if (Noise.bEnabled)
+	{
+		PP.FilmGrainIntensity           = FMath::Clamp(Noise.GaussianStdDev * 4.0f, 0.0f, 1.0f);
+		PP.FilmGrainIntensityHighlights = FMath::Clamp(Noise.ShotNoiseIntensity * 3.0f, 0.0f, 1.0f);
+	}
+	else
+	{
+		PP.FilmGrainIntensity           = 0.0f;
+		PP.FilmGrainIntensityHighlights = 0.0f;
+	}
+
 	if (Exposure.bEnabled)
 	{
 		PP.bOverride_AutoExposureMethod       = true;
@@ -139,7 +153,19 @@ void UCameraSensorComponent::ApplyPostProcess()
 
 void UCameraSensorComponent::ApplyDistortion()
 {
-	if (!Distortion.IsNonTrivial() || !DistortionMaterial) return;
+	if (!Distortion.IsNonTrivial() || !DistortionMaterial || !SceneCapture) return;
+
+	DistortionMID = UMaterialInstanceDynamic::Create(DistortionMaterial, this);
+	if (!DistortionMID) return;
+
+	DistortionMID->SetScalarParameterValue(TEXT("K1"), Distortion.K1);
+	DistortionMID->SetScalarParameterValue(TEXT("K2"), Distortion.K2);
+	DistortionMID->SetScalarParameterValue(TEXT("K3"), Distortion.K3);
+	DistortionMID->SetScalarParameterValue(TEXT("P1"), Distortion.P1);
+	DistortionMID->SetScalarParameterValue(TEXT("P2"), Distortion.P2);
+
+	SceneCapture->PostProcessSettings.WeightedBlendables.Array.Add(
+		FWeightedBlendable(1.0f, DistortionMID));
 }
 
 void UCameraSensorComponent::StartTimer()
@@ -162,6 +188,7 @@ void UCameraSensorComponent::OnTimer()
 	if (!bEnabled || !SceneCapture) return;
 
 	SceneCapture->CaptureScene();
+	LastTimestamp = FSensorTimestamp::Now();
 	CaptureCount++;
 
 	if (bExportEnabled && RenderTarget)

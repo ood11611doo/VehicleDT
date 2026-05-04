@@ -21,6 +21,15 @@ public:
 	UFUNCTION(BlueprintPure, Category = "CameraSensor")
 	UTextureRenderTarget2D* GetRenderTarget() const { return RenderTarget; }
 
+	UFUNCTION(BlueprintPure, Category = "CameraSensor")
+	FSensorTimestamp GetLastTimestamp() const { return LastTimestamp; }
+
+	UFUNCTION(BlueprintPure, Category = "CameraSensor")
+	bool IsSyncedWithLidar(const FSensorTimestamp& LidarTimestamp, float ThresholdSec = 0.05f) const
+	{
+		return FMath::Abs(LastTimestamp.GameTime - LidarTimestamp.GameTime) <= ThresholdSec;
+	}
+
 	UFUNCTION(BlueprintCallable, Category = "CameraSensor")
 	void TriggerCapture();
 
@@ -108,5 +117,6 @@ private:
 	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> DistortionMID;
 
-	FTimerHandle TimerHandle;
+	FSensorTimestamp LastTimestamp;
+	FTimerHandle     TimerHandle;
 };

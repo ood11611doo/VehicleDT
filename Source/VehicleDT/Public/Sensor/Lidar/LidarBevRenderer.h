@@ -21,6 +21,7 @@ public:
 private:
 	void AllocateCanvas();
 	void BuildColorTable();
+	void DrawObstacleBoundingBoxes(const FLidarScanResult& Scan, const FTransform& SensorTransform);
 
 	UPROPERTY()
 	TObjectPtr<UTexture2D> Canvas;
