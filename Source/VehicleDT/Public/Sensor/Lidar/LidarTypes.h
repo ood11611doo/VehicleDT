@@ -99,4 +99,15 @@ struct FBevConfig
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BEV|Obstacle")
 	FLinearColor ObstacleColor = FLinearColor(1.0f, 0.3f, 0.0f, 1.0f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BEV|Detection")
+	bool bDrawObstacleBoxes = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BEV|Detection",
+		meta = (ClampMin = "4", ClampMax = "64", EditCondition = "bDrawObstacleBoxes"))
+	int32 ClusterCellPx = 8;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "BEV|Detection",
+		meta = (EditCondition = "bDrawObstacleBoxes"))
+	float ObstacleGroundHeight = -80.0f;
 };

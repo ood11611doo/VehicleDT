@@ -113,8 +113,129 @@ void ULidarBevRenderer::Render(const FLidarScanResult& Scan, const FTransform& S
 			Px[Row + C + dx] = White;
 	}
 
+	if (Config.bDrawObstacleBoxes)
+		DrawObstacleBoundingBoxes(Scan, SensorTransform);
+
 	Canvas->UpdateTextureRegions(
 		0, 1, &UpdateRegion,
 		ImgSize * sizeof(FColor), sizeof(FColor),
 		reinterpret_cast<uint8*>(Px));
+}
+
+void ULidarBevRenderer::DrawObstacleBoundingBoxes(const FLidarScanResult& Scan,
+                                                   const FTransform& SensorTransform)
+{
+	const int32 ImgSize  = Config.ImageSize;
+	const float Half     = static_cast<float>(ImgSize) * 0.5f;
+	const float Scale    = Half / Config.ViewRange;
+	const int32 CellPx   = FMath::Max(Config.ClusterCellPx, 1);
+	const int32 GridW    = ImgSize / CellPx;
+	const int32 GridN    = GridW * GridW;
+
+	// Build occupancy grid — only points above ground threshold and outside self-exclusion radius
+	TArray<bool> Occupied;
+	Occupied.Init(false, GridN);
+
+	const FTransform InvSensor  = SensorTransform.Inverse();
+	const float SelfExcludeSq   = 200.f * 200.f; // ignore within 2 m of sensor origin
+	const float GroundThreshold = Config.ObstacleGroundHeight;
+
+	for (int32 i = 0; i < Scan.PointCount && i < Scan.Points.Num(); ++i)
+	{
+		const FVector Local = InvSensor.TransformPosition(Scan.Points[i]);
+		if (Local.Z < GroundThreshold) continue;
+		if (Local.X * Local.X + Local.Y * Local.Y < SelfExcludeSq) continue;
+
+		const int32 PX = FMath::RoundToInt32(Half + Local.Y * Scale);
+		const int32 PY = FMath::RoundToInt32(Half - Local.X * Scale);
+		const int32 GX = FMath::Clamp(PX / CellPx, 0, GridW - 1);
+		const int32 GY = FMath::Clamp(PY / CellPx, 0, GridW - 1);
+		Occupied[GY * GridW + GX] = true;
+	}
+
+	// Connected-component labeling (4-connected BFS)
+	TArray<int32> Labels;
+	Labels.Init(-1, GridN);
+	int32 NumLabels = 0;
+
+	struct FBox2i { int32 MinX, MinY, MaxX, MaxY; };
+	TArray<FBox2i> Boxes;
+
+	for (int32 Start = 0; Start < GridN; ++Start)
+	{
+		if (!Occupied[Start] || Labels[Start] >= 0) continue;
+
+		const int32 Label = NumLabels++;
+		Boxes.Add({ GridW, GridW, -1, -1 });
+		FBox2i& Box = Boxes.Last();
+
+		TArray<int32, TInlineAllocator<64>> Queue;
+		Queue.Add(Start);
+		Labels[Start] = Label;
+
+		for (int32 Q = 0; Q < Queue.Num(); ++Q)
+		{
+			const int32 Cur = Queue[Q];
+			const int32 CX  = Cur % GridW;
+			const int32 CY  = Cur / GridW;
+
+			Box.MinX = FMath::Min(Box.MinX, CX);
+			Box.MinY = FMath::Min(Box.MinY, CY);
+			Box.MaxX = FMath::Max(Box.MaxX, CX);
+			Box.MaxY = FMath::Max(Box.MaxY, CY);
+
+			const int32 Neighbors[4] = {
+				CY > 0       ? Cur - GridW : -1,
+				CY < GridW-1 ? Cur + GridW : -1,
+				CX > 0       ? Cur - 1     : -1,
+				CX < GridW-1 ? Cur + 1     : -1
+			};
+			for (int32 N : Neighbors)
+			{
+				if (N >= 0 && Occupied[N] && Labels[N] < 0)
+				{
+					Labels[N] = Label;
+					Queue.Add(N);
+				}
+			}
+		}
+	}
+
+	// Draw box outlines — skip single-cell noise
+	static const FColor BoxPalette[] = {
+		FColor(0,   255, 255, 255),  // cyan
+		FColor(255, 165,   0, 255),  // orange
+		FColor(255,   0, 255, 255),  // magenta
+		FColor(0,   200,   0, 255),  // green
+	};
+	constexpr int32 NumColors = 4;
+
+	FColor* Px = PixelBuffer.GetData();
+
+	for (int32 L = 0; L < Boxes.Num(); ++L)
+	{
+		const FBox2i& B = Boxes[L];
+		if (B.MaxX < B.MinX || B.MaxY < B.MinY) continue;
+		if ((B.MaxX - B.MinX + 1) * (B.MaxY - B.MinY + 1) < 2) continue;
+
+		const int32 X0 = B.MinX * CellPx;
+		const int32 Y0 = B.MinY * CellPx;
+		const int32 X1 = FMath::Min((B.MaxX + 1) * CellPx, ImgSize - 1);
+		const int32 Y1 = FMath::Min((B.MaxY + 1) * CellPx, ImgSize - 1);
+
+		const FColor Col = BoxPalette[L % NumColors];
+
+		for (int32 X = X0; X <= X1; ++X)
+		{
+			if (X < 0 || X >= ImgSize) continue;
+			if (Y0 >= 0 && Y0 < ImgSize) Px[Y0 * ImgSize + X] = Col;
+			if (Y1 >= 0 && Y1 < ImgSize) Px[Y1 * ImgSize + X] = Col;
+		}
+		for (int32 Y = Y0 + 1; Y < Y1; ++Y)
+		{
+			if (Y < 0 || Y >= ImgSize) continue;
+			if (X0 >= 0 && X0 < ImgSize) Px[Y * ImgSize + X0] = Col;
+			if (X1 >= 0 && X1 < ImgSize) Px[Y * ImgSize + X1] = Col;
+		}
+	}
 }
