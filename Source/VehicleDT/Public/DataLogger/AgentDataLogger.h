@@ -81,18 +81,18 @@ private: // 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data Logger", meta = (AllowPrivateAccess = "true"))
 	float DebugStringInterval = 500.f;
 	
-	//UTM 기준점 위도
+	//UTM 기준점 위도 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data Logger", meta = (AllowPrivateAccess = "true"))
-	double OriginLatitude = 0.0000;
+	double OriginLatitude = 36.4800;
 	///UTM 기준점 경도
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data Logger", meta = (AllowPrivateAccess = "true"))
-	double OriginLongitude = 0.0000;
+	double OriginLongitude = 127.0000;
 	
 private: // 내부 상태 값
 	FString CSVFilePath;				// CSV 파일이 저장될 경로 (프로젝트/Output/AgentData ~ )
-	bool bIsRecording = false;			// 녹화 상태
+	bool bIsRecording = false;			// 기록 상태
 	float TimeSinceLastSave = 0.f;	    // 마지막 저장 이후 경과 시간
-	float ElapsedRecordingTime = 0.f;	// 녹화 경과 시간
+	float ElapsedRecordingTime = 0.f;	// 기록 경과 시간
 	
 	double OriginUtmEasting = 0.0;	// 기준점의 UTM X좌표 (미터)
 	double OriginUtmNorthing = 0.0;// 기준점의 UTM Y좌표 (미터)
@@ -102,5 +102,5 @@ private: // 내부 상태 값
 	FVector PrevLocation = FVector::ZeroVector;			//이전 프레임 위치 (궤적 그릴 때 사용)
 	float LastSpeed = 0.f;								// 이전 프레임 속도 (급감속 판별용)
 	float LastDebugStringDistance = 0.f;				// 마지막으로 DrawDebugString 표시한 누적 거리
-	FVector2D LastControlInput = FVector2D::ZeroVector; //마지막으로 받은 조향 / 스로틀 입력값
+	FVector2D LastControlInput = FVector2D::ZeroVector; //마지막으로 받은 조향 / 스로틀(엑셀) 입력값
 };
