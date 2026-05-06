@@ -24,7 +24,7 @@ public:
 	UFUNCTION(BlueprintPure, Category = "DataLogger")
 	bool IsRecording() const { return bIsRecording; }
 
-	void HandleLidarScan(const FLidarPointCloudData& PointCloud);
+	void HandleLidarScan(const FLidarScanResult& PointCloud);
 	void HandleCameraFrame();
 	void HandleControlOutput(float Value);
 

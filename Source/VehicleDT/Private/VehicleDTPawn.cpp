@@ -67,6 +67,15 @@ AVehicleDTPawn::AVehicleDTPawn()
 void AVehicleDTPawn::BeginPlay()
 {
 	Super::BeginPlay();
+	LidarSensor->OnLidarScanReady.AddUObject(BEVVisualization,
+	   &UBEVVisualizationComponent::HandleLidarScan);
+	LidarSensor->OnLidarScanReady.AddUObject(DataLogger,
+		&UAgentDataLoggerComponent::HandleLidarScan);
+	SplineFollower->OnControlOutput.AddUObject(DataLogger,
+		&UAgentDataLoggerComponent::HandleControlOutput);
+	CameraSensor->OnFrameReady.AddUObject(DataLogger,
+		&UAgentDataLoggerComponent::HandleCameraFrame);
+	if (LidarSensor) LidarSensor->StartScan();
 }
 
 void AVehicleDTPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)

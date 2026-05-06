@@ -190,7 +190,7 @@ void UCameraSensorComponent::OnTimer()
 	SceneCapture->CaptureScene();
 	LastTimestamp = FSensorTimestamp::Now();
 	CaptureCount++;
-
+	OnFrameReady.Broadcast();
 	if (bExportEnabled && RenderTarget)
 		ExportFrame();
 }

@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
+#include "Sensor/SensorTypes.h"
 #include "Sensor/Lidar/LidarTypes.h"
 #include "LidarSensorComponent.generated.h"
 
@@ -36,7 +37,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "LidarSensor")
 	void ApplySensorConfig();
-
+	
+	FOnLidarScanReady OnLidarScanReady;
+	
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;

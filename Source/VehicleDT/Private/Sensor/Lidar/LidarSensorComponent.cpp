@@ -79,12 +79,15 @@ void ULidarSensorComponent::OnTimer()
 	if (BevRenderer)
 		BevRenderer->Render(Scan, GetComponentTransform());
 
+	OnLidarScanReady.Broadcast(Scan);
+	
 	if (bExportEnabled && Scan.PointCount > 0)
 		ExportScan();
 }
 
 void ULidarSensorComponent::ExportScan()
 {
+	
 }
 
 void ULidarSensorComponent::StartScan()

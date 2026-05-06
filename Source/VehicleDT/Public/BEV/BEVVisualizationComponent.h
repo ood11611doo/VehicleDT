@@ -18,7 +18,7 @@ public:
 	UBEVVisualizationComponent();
 
 	/** LidarSensor의 OnLidarScanReady 델리게이트에 바인딩 */
-	void HandleLidarScan(const FLidarPointCloudData& PointCloud);
+	void HandleLidarScan(const FLidarScanResult& PointCloud);
 
 	UFUNCTION(BlueprintPure, Category = "BEV")
 	UTexture2D* GetRenderTarget() const { return DynamicTexture; }
@@ -31,7 +31,7 @@ protected:
 private:
 	void CreateTexture();
 	void BuildColorLUT();
-	void UpdatePixelBuffer(const FLidarPointCloudData& PointCloud);
+	void UpdatePixelBuffer(const FLidarScanResult& PointCloud);
 	void DrawGrid();
 	void DrawHeading();
 

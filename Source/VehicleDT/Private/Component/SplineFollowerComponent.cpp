@@ -277,6 +277,12 @@ float USplineFollowerComponent::ComputeCurveSpeedLimit(float Curvature) const
 	);
 }
 
+void USplineFollowerComponent::DoThrottle(const float Value)
+{
+	OwnerPawn->DoThrottle(Value);
+	OnControlOutput.Broadcast(Value);
+}
+
 void USplineFollowerComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -319,7 +325,7 @@ void USplineFollowerComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 	if (!bClosedLoop && CurrentPointIndex >= PathPoints.Num() - 2)
 	{
-		OwnerPawn->DoThrottle(0.f);
+		DoThrottle(0.0f);
 		OwnerPawn->DoBrakeStart();
 		return;
 	}
@@ -404,12 +410,12 @@ void USplineFollowerComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		-1.f, 1.f
 	);
 	if (Cmd > 0.05f)
-		OwnerPawn->DoThrottle(Cmd);
+		DoThrottle(Cmd);
 	else if (Cmd < -0.05f)
 		OwnerPawn->DoBrake(-Cmd);
 	else
 	{
-		OwnerPawn->DoThrottle(0.f);
+		DoThrottle(0.f);
 		OwnerPawn->DoBrake(0.f);
 	}
 }

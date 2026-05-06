@@ -2,6 +2,7 @@
 
 #include "BEV/BEVVisualizationComponent.h"
 #include "Engine/Texture2D.h"
+#include "Sensor/Lidar/LidarTypes.h"
 
 
 UBEVVisualizationComponent::UBEVVisualizationComponent()
@@ -18,7 +19,7 @@ void UBEVVisualizationComponent::BeginPlay()
 	
 }
 
-void UBEVVisualizationComponent::HandleLidarScan(const FLidarPointCloudData& PointCloud)
+void UBEVVisualizationComponent::HandleLidarScan(const FLidarScanResult& PointCloud)
 {
 	if (!DynamicTexture) return;
 	UpdatePixelBuffer(PointCloud);
@@ -51,7 +52,7 @@ void UBEVVisualizationComponent::BuildColorLUT()
 	}
 }
 
-void UBEVVisualizationComponent::UpdatePixelBuffer(const FLidarPointCloudData& PointCloud)
+void UBEVVisualizationComponent::UpdatePixelBuffer(const FLidarScanResult& PointCloud)
 {
 	/**
 	 * Scale = (ImageSize / 2) / ViewRange - Pixel per Cm

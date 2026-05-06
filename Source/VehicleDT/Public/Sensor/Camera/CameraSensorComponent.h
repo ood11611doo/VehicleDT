@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SceneComponent.h"
+#include "Sensor/SensorTypes.h"
 #include "Sensor/Camera/SensorCameraTypes.h"
 #include "CameraSensorComponent.generated.h"
 
@@ -42,6 +43,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "CameraSensor")
 	void ApplySensorConfig();
 
+	FOnCameraFrameReady OnFrameReady;
 protected:
 	virtual void OnRegister() override;
 	virtual void BeginPlay() override;

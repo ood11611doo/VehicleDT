@@ -31,7 +31,7 @@ void UAgentDataLoggerComponent::StartRecording()
 {
 }
 
-void UAgentDataLoggerComponent::HandleLidarScan(const FLidarPointCloudData& PointCloud)
+void UAgentDataLoggerComponent::HandleLidarScan(const FLidarScanResult& PointCloud)
 {
 }
 

@@ -30,7 +30,7 @@ private:
 	FVector GetPointAhead(FVector& OutDirection, float Distance) const;
 	float   EstimateCurvature(float AheadOffset) const;
 	float   ComputeCurveSpeedLimit(float Curvature) const;
-
+	void	DoThrottle(const float Value);
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SplineFollower|Speed",
 		meta=(AllowPrivateAccess="true"))
