@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "WheeledVehiclePawn.h"
+#include "Sensor/UI/SensorViewWidget.h"
+#include "System/VehicleDTPlayerController.h"
 #include "VehicleDTPawn.generated.h"
 
 class UCameraComponent;
@@ -111,7 +113,6 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float Delta) override;
-
 	// End Actor interface
 
 	/** SplineFollower가 직접 호출하는 제어 인터페이스 */
@@ -121,6 +122,7 @@ public:
 	void DoBrakeStart();
 	void DoHandbrake(bool bActive);
 	void DoToggleSensorView();
+	void SetSensorViewWidget(TObjectPtr<USensorViewWidget> SensorViewWidget);
 
 protected:
 

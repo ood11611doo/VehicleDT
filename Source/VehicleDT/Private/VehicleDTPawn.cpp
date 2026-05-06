@@ -15,6 +15,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "ChaosWheeledVehicleMovementComponent.h"
+#include "Sensor/UI/SensorViewWidget.h"
 
 #define LOCTEXT_NAMESPACE "VehiclePawn"
 
@@ -75,7 +76,17 @@ void AVehicleDTPawn::BeginPlay()
 		&UAgentDataLoggerComponent::HandleControlOutput);
 	CameraSensor->OnFrameReady.AddUObject(DataLogger,
 		&UAgentDataLoggerComponent::HandleCameraFrame);
+
 	if (LidarSensor) LidarSensor->StartScan();
+	
+	
+	if (AVehicleDTPlayerController* PC = Cast<AVehicleDTPlayerController>(GetController()))
+	{
+		if (USensorViewWidget* Widget = PC->GetSensorViewWidget())
+		{
+			SetSensorViewWidget(Widget);
+		}
+	}
 }
 
 void AVehicleDTPawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -130,6 +141,7 @@ void AVehicleDTPawn::Tick(float Delta)
 
 	BackSpringArm->SetRelativeRotation(FRotator(0.0f, CameraYaw, 0.0f));
 }
+
 
 void AVehicleDTPawn::Steering(const FInputActionValue& Value)
 {
@@ -257,6 +269,13 @@ void AVehicleDTPawn::DoHandbrake(bool bActive)
 
 void AVehicleDTPawn::DoToggleSensorView()
 {
+}
+
+void AVehicleDTPawn::SetSensorViewWidget(TObjectPtr<USensorViewWidget> SensorViewWidget)
+{
+	if (!SensorViewWidget || !BEVVisualization || !CameraSensor) return;
+	BEVVisualization->OnBEVUpdate.AddUObject(SensorViewWidget,&USensorViewWidget::SetLidarTexture);
+	SensorViewWidget->SetRenderTarget(CameraSensor->GetRenderTarget());
 }
 
 #undef LOCTEXT_NAMESPACE

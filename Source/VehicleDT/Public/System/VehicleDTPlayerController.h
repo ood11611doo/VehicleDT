@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "VehicleDTPlayerController.generated.h"
 
+class USensorViewWidget;
 class UInputMappingContext;
 class AVehicleDTPawn;
 class UVehicleDTUI;
@@ -41,11 +42,16 @@ protected:
 	/** Type of the UI to spawn */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = UI)
 	TSubclassOf<UVehicleDTUI> VehicleUIClass;
+	/** Type of the UI to spawn */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = UI)
+	TSubclassOf<USensorViewWidget> SensorViewWidgetClass;
 
 	/** Pointer to the UI widget */
 	TObjectPtr<UVehicleDTUI> VehicleUI;
+	TObjectPtr<USensorViewWidget> SensorViewWidget;
 
-	
+public:
+	USensorViewWidget* GetSensorViewWidget() const { return SensorViewWidget; }
 
 	// Begin Actor interface
 protected:
