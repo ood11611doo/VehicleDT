@@ -60,7 +60,9 @@ AVehicleDTPawn::AVehicleDTPawn()
 
 	SplineFollower  = CreateDefaultSubobject<USplineFollowerComponent>(TEXT("SplineFollower"));
 	CameraSensor    = CreateDefaultSubobject<UCameraSensorComponent>(TEXT("CameraSensor"));
+	CameraSensor->SetupAttachment(GetMesh());
 	LidarSensor     = CreateDefaultSubobject<ULidarSensorComponent>(TEXT("LidarSensor"));
+	LidarSensor->SetupAttachment(GetMesh());
 	BEVVisualization = CreateDefaultSubobject<UBEVVisualizationComponent>(TEXT("BEVVisualization"));
 	DataLogger      = CreateDefaultSubobject<UAgentDataLoggerComponent>(TEXT("DataLogger"));
 }
