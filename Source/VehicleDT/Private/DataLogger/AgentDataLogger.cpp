@@ -3,6 +3,7 @@
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
 #include "DrawDebugHelpers.h"
+#include "Sensor/Lidar/LidarTypes.h"
 
 UAgentDataLogger::UAgentDataLogger()
 {
@@ -133,7 +134,7 @@ void UAgentDataLogger::AppendRow()
 void UAgentDataLogger::DrawDebugTrail()
 {
     // DebugDrawEnabled가 꺼져있으면 실행 안 함
-    if (!DebugDrawEnabled) return;
+    if (!bDebugDrawEnabled) return;
 
     const AActor* Owner = GetOwner();
     if (!Owner) return;
@@ -201,9 +202,10 @@ void UAgentDataLogger::DrawDebugTrail()
     PrevLocation = CurrentLocation;
 }
 
-void UAgentDataLogger::HandleLidarScan(const TArray<FVector>& Points)
+void UAgentDataLogger::HandleLidarScan(const FLidarScanResult& Scan)
 {
-	// 나중에 Lidar 데이터 활용
+	 // 받은 포인트 수 로그 출력
+    UE_LOG(LogTemp, Log, TEXT("[DataLogger] Lidar points received: %d"), Scan.PointCount);
 }
 
 void UAgentDataLogger::HandleControlOutput(const FVector2D& Input)
@@ -214,7 +216,7 @@ void UAgentDataLogger::HandleControlOutput(const FVector2D& Input)
 
 void UAgentDataLogger::HandleCameraFrameReady()
 {
-	// 나중에 카메라 프레임 활용
+	// 카메라 프레임 캡처 완료 신호만 받음 - 처리 없음
 }
 
 void UAgentDataLogger::WorldToUtm(const FVector& WorldLocation,

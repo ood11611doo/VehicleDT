@@ -26,7 +26,7 @@ public:
 	
 	//라이다센서에서 데이터 받기
 	UFUNCTION()
-	void HandleLidarScan(const TArray <FVector>& Points);
+	void HandleLidarScan(const FLidarScanResult& Scan);
 	
 	// SplineFollower에서 입력값 받기
 	UFUNCTION()
@@ -71,7 +71,7 @@ private: // 변수
 	
 	//DrawDebug 시각화 켜고 끄기
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data Logger", meta = (AllowPrivateAccess = "true"))
-	bool DebugDrawEnabled = true;
+	bool bDebugDrawEnabled = true;
 	
 	// 급감속 판별 임계값 (체크리스트)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data Logger", meta = (AllowPrivateAccess = "true"))
