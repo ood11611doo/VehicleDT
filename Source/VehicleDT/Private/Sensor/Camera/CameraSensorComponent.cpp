@@ -3,6 +3,8 @@
 #include "Engine/TextureRenderTarget2D.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "TimerManager.h"
+#include "BatchedElements.h"
+#include "Components/LineBatchComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogCameraSensor, Log, All);
 
@@ -93,7 +95,15 @@ void UCameraSensorComponent::ConfigureCapture()
 	SceneCapture->bCaptureOnMovement          = false;
 	SceneCapture->bAlwaysPersistRenderingState = true;
 	SceneCapture->CaptureSource               = ESceneCaptureSource::SCS_FinalColorLDR;
-	SceneCapture->PostProcessBlendWeight      = 1.0f;
+	SceneCapture->PostProcessBlendWeight      = 0.0f;
+	// DrawDebugLine이 카메라에 잡히지 않도록 World LineBatcher 숨기기
+	if (UWorld* World = GetWorld())
+	{
+		if (World->LineBatcher)
+			SceneCapture->HideComponent(World->LineBatcher);
+		if (World->PersistentLineBatcher)
+			SceneCapture->HideComponent(World->PersistentLineBatcher);
+	}
 }
 
 void UCameraSensorComponent::ApplyPostProcess()
