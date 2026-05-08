@@ -147,3 +147,71 @@
   BrakePreviewDist= 5000  (기본값)
 
   최고 랩타임: 35.46초  (베이스라인 55.30초 대비 -19.84초)
+
+
+■ ChaosVehicle 파라미터 설명 (BP_SportsCar_Pawn에서 수정)
+----------------------------------------
+[엔진 - Engine Setup]
+  MaxTorque           : 엔진 최대 토크 — 클수록 가속력 강함                    (현재: 750)
+  MaxRPM              : 엔진 최대 회전수 — 클수록 최고속 높음                   (현재: 7000)
+  EngineIdleRPM       : 공회전 RPM — 정차 시 유지되는 RPM                      (현재: 900)
+  EngineBrakeEffect   : 엔진 브레이크 세기 — 클수록 악셀 떼면 더 많이 감속      (현재: 0.2)
+  EngineRevUpMOI      : 엔진 회전 관성 — 클수록 RPM이 천천히 오름               (현재: 5.0)
+  EngineRevDownRate   : 악셀 뗄 때 RPM이 떨어지는 속도                          (현재: 600)
+
+[변속기 - Transmission Setup]
+  FinalRatio          : 최종 감속비 — 클수록 가속↑ 최고속↓                      (현재: 2.81)
+  ChangeUpRPM         : 이 RPM 넘으면 자동 업시프트                             (현재: 6000)
+  ChangeDownRPM       : 이 RPM 밑이면 자동 다운시프트                           (현재: 2000)
+  GearChangeTime      : 변속 소요 시간(초) — 클수록 변속 중 동력 끊김 길어짐    (현재: 0.2)
+  TransmissionEfficiency: 동력 전달 효율 — 1.0이 최대 (손실 없음)              (현재: 0.9)
+  ForwardGearRatios   : 1~5단 기어비 — 1단이 가장 큰 힘, 5단이 최고속
+                        (현재: 4.25 / 2.52 / 1.66 / 1.22 / 1.0)
+
+[휠 - Wheel (C++ 수정 필요, 재컴파일 필요)]
+  FrictionForceMultiplier: 타이어 마찰 배율 — 클수록 그립 강함
+                           (현재: 전륜 3.0 / 후륜 4.0)
+  MaxBrakeTorque      : 최대 제동력                                             (현재: 전륜 4500)
+
+※ 수정 방법: BP_SportsCar_Pawn 열기 → VehicleMovementComp 클릭
+             → Details 패널에서 수정 → Compile + Save → 플레이 (재컴파일 불필요)
+
+■ ChaosVehicle 실험 기록
+----------------------------------------
+[버그 수정]
+  코너에서 기어 1↔R 깜빡이며 멈추는 현상
+  원인: Reverse as Brake 옵션이 켜져 있어 코너 감속 시 브레이크가 R 기어를 개입시킴
+  해결: Reverse as Brake 옵션 끄기
+
+※ PC 공용 환경으로 세션 간 랩타임 절대값 비교 불가. 같은 세션 내 차이값만 유효.
+  이번 세션 베이스라인: 37.4초
+
+실험 C1│ GearChangeTime: 0.2 → 0.05
+        MaxTorque: 750 → 1200
+        TransmissionEfficiency: 0.9 → 1.0
+       │ 랩타임: 36.26초  (-1.14초)  ★ ChaosVehicle 최적
+
+[무효 실험]
+  FinalRatio 3.5 + ChangeUpRPM 4500 + MaxRPM 9000 → 36.8초 (느려짐, 원복)
+
+
+========================================
+  작업 요약 및 트러블슈팅 기록
+========================================
+
+■ 전체 작업 흐름
+  DigitalTwinNbc 예시 프로젝트에서 SplineFollowerComponent를 VehicleDT로 포팅,
+  LandscapeSpline 경로 추종 + 랩타임 자동 측정 기능 구현 후 파라미터 튜닝 진행.
+  SplineFollower 19개 실험으로 55.30초 → 35.46초 달성 (-19.84초).
+  이후 ChaosVehicle 튜닝 시도, 세션 베이스라인 37.4초에서 36.26초 달성 (-1.14초).
+
+■ 힘들었던 점
+  1. 파라미터 수가 많아 어떤 것부터 건드려야 할지 판단이 어려웠음
+     → 효과 큰 것부터 단계적으로 진행하는 방식으로 해결
+
+■ 트러블슈팅
+  [증상] 코너에서 기어가 1↔R을 반복하며 차가 멈추는 현상
+  [원인] Reverse as Brake 옵션이 켜져 있어 코너 감속 시 브레이크가 R 기어를 개입시킴
+  [해결] Reverse as Brake 옵션 끄기
+  [교훈] 브레이크 입력이 자동으로 후진 기어로 전환되는 옵션이 켜져 있으면
+         코너 감속 시 R 기어가 개입해 차가 멈출 수 있음
